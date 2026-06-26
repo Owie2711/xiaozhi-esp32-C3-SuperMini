@@ -1,8 +1,31 @@
 # ESP32-C3 Custom Board
 
 This board configuration is for an ESP32-C3 Super Mini with an SSD1306 OLED display and separate I2S audio devices:
+- SSD1306 OLED display
 - MAX98357A speaker
 - INMP441 microphone
+
+## ESP32-C3 Super Mini pin mapping
+
+GPIO0 (A0)
+GPIO1 (A1)
+GPIO2 (A2)
+GPIO3 (A3)
+GPIO4 (A4)
+GPIO5 (A5)
+GPIO6
+GPIO7
+GPIO8
+GPIO9
+GPIO10
+GPIO20 (UART RX)
+GPIO21 (UART TX)
+
+Power Pins:
+- 5V
+- 3.3V
+- GND
+
 
 ## Supported features
 
