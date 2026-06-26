@@ -1,173 +1,154 @@
-# An MCP-based Chatbot
+# ESP32-C3 Custom Board
 
-(English | [中文](README_zh.md) | [日本語](README_ja.md))
+This board configuration is for an ESP32-C3 Super Mini with an SSD1306 OLED display and separate I2S audio devices:
+- MAX98357A speaker
+- INMP441 microphone
 
-## Introduction
+## Supported features
 
-👉 [Human: Give AI a camera vs AI: Instantly finds out the owner hasn't washed hair for three days【bilibili】](https://www.bilibili.com/video/BV1bpjgzKEhd/)
+- SSD1306 OLED via I2C
+- I2S audio output to MAX98357A
+- I2S microphone input from INMP441
+- Separate simplex I2S audio pins for speaker and mic
 
-👉 [Handcraft your AI girlfriend, beginner's guide【bilibili】](https://www.bilibili.com/video/BV1XnmFYLEJN/)
+## Wiring
 
-As a voice interaction entry, the XiaoZhi AI chatbot leverages the AI capabilities of large models like Qwen / DeepSeek, and achieves multi-terminal control via the MCP protocol.
+### OLED display
+- `SDA` -> `GPIO8`
+- `SCL` -> `GPIO9`
+- `VCC` -> `3.3V`
+- `GND` -> `GND`
+- OLED I2C address: `0x3C`
 
-<img src="docs/mcp-based-graph.jpg" alt="Control everything via MCP" width="320">
+### MAX98357A speaker
+- `BCLK` -> `GPIO7`
+- `LRCK` -> `GPIO5`
+- `DOUT` -> `GPIO6`
+- `DIN` not used
+- `GND` -> `GND`
+- `VCC` -> `3.3V`
 
-## Version Notes
+### INMP441 microphone
+- `SCK` -> `GPIO3`
+- `WS` -> `GPIO2`
+- `DIN` -> `GPIO4`
+- `VCC` -> `3.3V`
+- `GND` -> `GND`
 
-The current v2 version is incompatible with the v1 partition table, so it is not possible to upgrade from v1 to v2 via OTA. For partition table details, see [partitions/v2/README.md](partitions/v2/README.md).
+## Important pin configuration
 
-All hardware running v1 can be upgraded to v2 by manually flashing the firmware.
+The custom board uses `main/boards/esp32-c3-custom/config.h` to define the pins:
 
-The stable version of v1 is 1.9.2. You can switch to v1 by running `git checkout v1`. The v1 branch will be maintained until February 2026.
+```c
+#define DISPLAY_SDA_PIN GPIO_NUM_8
+#define DISPLAY_SCL_PIN GPIO_NUM_9
 
-### Features Implemented
+#define AUDIO_I2S_MIC_GPIO_WS   GPIO_NUM_2
+#define AUDIO_I2S_MIC_GPIO_SCK  GPIO_NUM_3
+#define AUDIO_I2S_MIC_GPIO_DIN  GPIO_NUM_4
 
-- Wi-Fi / ML307 Cat.1 4G
-- Offline voice wake-up [ESP-SR](https://github.com/espressif/esp-sr)
-- Supports two communication protocols ([Websocket](docs/websocket.md) or MQTT+UDP)
-- Uses OPUS audio codec
-- Voice interaction based on streaming ASR + LLM + TTS architecture
-- Speaker recognition, identifies the current speaker [3D Speaker](https://github.com/modelscope/3D-Speaker)
-- OLED / LCD display, supports emoji display
-- Battery display and power management
-- Multi-language support (Chinese, English, Japanese)
-- Supports ESP32-C3, ESP32-S3, ESP32-P4 chip platforms
-- Device-side MCP for device control (Speaker, LED, Servo, GPIO, etc.)
-- Cloud-side MCP to extend large model capabilities (smart home control, PC desktop operation, knowledge search, email, etc.)
-- Customizable wake words, fonts, emojis, and chat backgrounds with online web-based editing ([Custom Assets Generator](https://github.com/78/xiaozhi-assets-generator))
+#define AUDIO_I2S_SPK_GPIO_DOUT GPIO_NUM_6
+#define AUDIO_I2S_SPK_GPIO_BCLK GPIO_NUM_7
+#define AUDIO_I2S_SPK_GPIO_LRCK GPIO_NUM_5
+```
 
-## Hardware
+## Build instructions
 
-### Breadboard DIY Practice
+1. Set the ESP32 target:
 
-See the Feishu document tutorial:
+```bash
+idf.py set-target esp32c3
+```
 
-👉 ["XiaoZhi AI Chatbot Encyclopedia"](https://ccnphfhqs21z.feishu.cn/wiki/F5krwD16viZoF0kKkvDcrZNYnhb?from=from_copylink)
+2. Configure the project if needed:
 
-Breadboard demo:
+```bash
+idf.py menuconfig
+```
 
-![Breadboard Demo](docs/v1/wiring2.jpg)
+3. Build the project:
 
-### Supports 70+ Open Source Hardware (Partial List)
+```bash
+idf.py build
+```
 
-- <a href="https://oshwhub.com/li-chuang-kai-fa-ban/li-chuang-shi-zhan-pai-esp32-s3-kai-fa-ban" target="_blank" title="LiChuang ESP32-S3 Development Board">LiChuang ESP32-S3 Development Board</a>
-- <a href="https://github.com/espressif/esp-box" target="_blank" title="Espressif ESP32-S3-BOX3">Espressif ESP32-S3-BOX3</a>
-- <a href="https://docs.m5stack.com/zh_CN/core/CoreS3" target="_blank" title="M5Stack CoreS3">M5Stack CoreS3</a>
-- <a href="https://docs.m5stack.com/en/atom/Atomic%20Echo%20Base" target="_blank" title="AtomS3R + Echo Base">M5Stack AtomS3R + Echo Base</a>
-- <a href="https://gf.bilibili.com/item/detail/1108782064" target="_blank" title="Magic Button 2.4">Magic Button 2.4</a>
-- <a href="https://www.waveshare.net/shop/ESP32-S3-Touch-AMOLED-1.8.htm" target="_blank" title="Waveshare ESP32-S3-Touch-AMOLED-1.8">Waveshare ESP32-S3-Touch-AMOLED-1.8</a>
-- <a href="https://github.com/Xinyuan-LilyGO/T-Circle-S3" target="_blank" title="LILYGO T-Circle-S3">LILYGO T-Circle-S3</a>
-- <a href="https://oshwhub.com/tenclass01/xmini_c3" target="_blank" title="XiaGe Mini C3">XiaGe Mini C3</a>
-- <a href="https://oshwhub.com/movecall/cuican-ai-pendant-lights-up-y" target="_blank" title="Movecall CuiCan ESP32S3">CuiCan AI Pendant</a>
-- <a href="https://github.com/WMnologo/xingzhi-ai" target="_blank" title="WMnologo-Xingzhi-1.54">WMnologo-Xingzhi-1.54TFT</a>
-- <a href="https://www.seeedstudio.com/SenseCAP-Watcher-W1-A-p-5979.html" target="_blank" title="SenseCAP Watcher">SenseCAP Watcher</a>
-- <a href="https://www.bilibili.com/video/BV1BHJtz6E2S/" target="_blank" title="ESP-HI Low Cost Robot Dog">ESP-HI Low Cost Robot Dog</a>
+If you have issues building, verify the `main/CMakeLists.txt` custom asset generation command uses the correct repository root paths and that `generated_assets.bin` is produced in `build/`.
 
-<div style="display: flex; justify-content: space-between;">
-  <a href="docs/v1/lichuang-s3.jpg" target="_blank" title="LiChuang ESP32-S3 Development Board">
-    <img src="docs/v1/lichuang-s3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/espbox3.jpg" target="_blank" title="Espressif ESP32-S3-BOX3">
-    <img src="docs/v1/espbox3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/m5cores3.jpg" target="_blank" title="M5Stack CoreS3">
-    <img src="docs/v1/m5cores3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/atoms3r.jpg" target="_blank" title="AtomS3R + Echo Base">
-    <img src="docs/v1/atoms3r.jpg" width="240" />
-  </a>
-  <a href="docs/v1/magiclick.jpg" target="_blank" title="Magic Button 2.4">
-    <img src="docs/v1/magiclick.jpg" width="240" />
-  </a>
-  <a href="docs/v1/waveshare.jpg" target="_blank" title="Waveshare ESP32-S3-Touch-AMOLED-1.8">
-    <img src="docs/v1/waveshare.jpg" width="240" />
-  </a>
-  <a href="docs/v1/lilygo-t-circle-s3.jpg" target="_blank" title="LILYGO T-Circle-S3">
-    <img src="docs/v1/lilygo-t-circle-s3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/xmini-c3.jpg" target="_blank" title="XiaGe Mini C3">
-    <img src="docs/v1/xmini-c3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/movecall-cuican-esp32s3.jpg" target="_blank" title="CuiCan">
-    <img src="docs/v1/movecall-cuican-esp32s3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/wmnologo_xingzhi_1.54.jpg" target="_blank" title="WMnologo-Xingzhi-1.54">
-    <img src="docs/v1/wmnologo_xingzhi_1.54.jpg" width="240" />
-  </a>
-  <a href="docs/v1/sensecap_watcher.jpg" target="_blank" title="SenseCAP Watcher">
-    <img src="docs/v1/sensecap_watcher.jpg" width="240" />
-  </a>
-  <a href="docs/v1/esp-hi.jpg" target="_blank" title="ESP-HI Low Cost Robot Dog">
-    <img src="docs/v1/esp-hi.jpg" width="240" />
-  </a>
-</div>
+## Flashing
 
-## Software
+Flash normally with:
 
-### Firmware Flashing
+```bash
+idf.py flash
+```
 
-For beginners, it is recommended to use the firmware that can be flashed without setting up a development environment.
+If you need to write a full image manually, include the generated assets file:
 
-The firmware connects to the official [xiaozhi.me](https://xiaozhi.me) server by default. Personal users can register an account to use the Qwen real-time model for free.
+```bash
+esptool.py --chip esp32c3 write_flash -z 0x1000 build/bootloader/bootloader.bin \
+    0x10000 build/xiaozhi.bin \
+    0x600000 build/generated_assets.bin
+```
 
-👉 [Beginner's Firmware Flashing Guide](https://ccnphfhqs21z.feishu.cn/wiki/Zpz4wXBtdimBrLk25WdcXzxcnNS)
+> Note: `generated_assets.bin` is required when the build is configured to embed assets in flash.
 
-### Development Environment
+## Known problems and fixes
 
-- Cursor or VSCode
-- Install ESP-IDF plugin, select SDK version 5.4 or above
-- Linux is better than Windows for faster compilation and fewer driver issues
-- This project uses Google C++ code style, please ensure compliance when submitting code
+### 1. Incorrect I2C pins
 
-### Developer Documentation
+The board initially used `GPIO13`/`GPIO15` for OLED I2C, which is not valid on this board and causes I2C initialization failure.
 
-- [Custom Board Guide](docs/custom-board.md) - Learn how to create custom boards for XiaoZhi AI
-- [MCP Protocol IoT Control Usage](docs/mcp-usage.md) - Learn how to control IoT devices via MCP protocol
-- [MCP Protocol Interaction Flow](docs/mcp-protocol.md) - Device-side MCP protocol implementation
-- [MQTT + UDP Hybrid Communication Protocol Document](docs/mqtt-udp.md)
-- [A detailed WebSocket communication protocol document](docs/websocket.md)
+Fix: update `main/boards/esp32-c3-custom/config.h` to use:
 
-## Large Model Configuration
+```c
+#define DISPLAY_SDA_PIN GPIO_NUM_8
+#define DISPLAY_SCL_PIN GPIO_NUM_9
+```
 
-If you already have a XiaoZhi AI chatbot device and have connected to the official server, you can log in to the [xiaozhi.me](https://xiaozhi.me) console for configuration.
+### 2. Build error from missing `generated_assets.bin`
 
-👉 [Backend Operation Video Tutorial (Old Interface)](https://www.bilibili.com/video/BV1jUCUY2EKM/)
+If the flash or merge script fails because `generated_assets.bin` is missing, check `main/CMakeLists.txt` and the custom asset generation command. It must use the correct project root path so the build can find `scripts/` and create the file.
 
-## Related Open Source Projects
+### 3. ESP-IDF pin conflicts
 
-For server deployment on personal computers, refer to the following open-source projects:
+Some GPIO pins on ESP32-C3 are reserved or have special functions. Always choose pins that are usable for I2C and I2S.
 
-- [xinnan-tech/xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) Python server
-- [joey-zhou/xiaozhi-esp32-server-java](https://github.com/joey-zhou/xiaozhi-esp32-server-java) Java server
-- [AnimeAIChat/xiaozhi-server-go](https://github.com/AnimeAIChat/xiaozhi-server-go) Golang server
-- [hackers365/xiaozhi-esp32-server-golang](https://github.com/hackers365/xiaozhi-esp32-server-golang) Golang server
+### 4. Display initialization failures
 
-Other client projects using the XiaoZhi communication protocol:
+If the SSD1306 driver fails to initialize:
+- verify the display address is `0x3C`
+- confirm the OLED has power and correct pull-ups
+- confirm `DISPLAY_WIDTH` and `DISPLAY_HEIGHT` match the OLED module
 
-- [huangjunsen0406/py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) Python client
-- [TOM88812/xiaozhi-android-client](https://github.com/TOM88812/xiaozhi-android-client) Android client
-- [100askTeam/xiaozhi-linux](http://github.com/100askTeam/xiaozhi-linux) Linux client by 100ask
-- [78/xiaozhi-sf32](https://github.com/78/xiaozhi-sf32) Bluetooth chip firmware by Sichuan
-- [QuecPython/solution-xiaozhiAI](https://github.com/QuecPython/solution-xiaozhiAI) QuecPython firmware by Quectel
+## Implementation details
 
-Custom Assets Tools:
+The custom board class is implemented in `main/boards/esp32-c3-custom/esp32_c3_custom_board.cc`.
 
-- [78/xiaozhi-assets-generator](https://github.com/78/xiaozhi-assets-generator) Custom Assets Generator (Wake words, fonts, emojis, backgrounds)
+- `InitializeDisplayI2c()` creates an I2C master bus using `DISPLAY_SDA_PIN` and `DISPLAY_SCL_PIN`.
+- `InitializeSsd1306Display()` installs the SSD1306 panel driver and powers on the display.
+- `GetAudioCodec()` returns a simplex audio codec configured with separate speaker and microphone I2S pins.
 
-## About the Project
+## What worked
 
-This is an open-source ESP32 project, released under the MIT license, allowing anyone to use it for free, including for commercial purposes.
+- Firmware built and flashed successfully for ESP32-C3.
+- OLED display works on `GPIO8`/`GPIO9`.
+- Speaker output works with MAX98357A on `GPIO7`/`GPIO5`/`GPIO6`.
 
-We hope this project helps everyone understand AI hardware development and apply rapidly evolving large language models to real hardware devices.
+## Tips for future debugging
 
-If you have any ideas or suggestions, please feel free to raise Issues or join our [Discord](https://discord.gg/C759fGMBcZ) or QQ group: 994694848
+- Use `idf.py monitor` to inspect boot logs and driver initialization output.
+- If the device resets, look for `ESP_ERROR_CHECK` failures on I2C or I2S setup.
+- Confirm the board uses `esp32c3` target and not another ESP32 family member.
 
-## Star History
+## Troubleshooting checklist
 
-<a href="https://star-history.com/#78/xiaozhi-esp32&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
- </picture>
-</a>
+1. Confirm `idf.py set-target esp32c3`.
+2. Confirm `main/boards/esp32-c3-custom/config.h` pin mapping.
+3. Confirm `main/boards/esp32-c3-custom/esp32_c3_custom_board.cc` uses those constants.
+4. Rebuild with `idf.py build`.
+5. Flash with `idf.py flash`.
+6. Monitor output with `idf.py monitor`.
+
+---
+
+This README is intended to help anyone rebuild the ESP32-C3 custom board firmware and resolve the common I2C / I2S wiring issues encountered during development.
